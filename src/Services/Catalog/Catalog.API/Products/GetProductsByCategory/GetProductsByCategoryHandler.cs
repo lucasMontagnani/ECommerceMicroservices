@@ -8,8 +8,6 @@
     {
         public async Task<GetProductsByCategoryResult> Handle(GetProductsByCategorQuery query, CancellationToken cancellationToken)
         {
-            logger.LogInformation("GetProductsByCategoryQueryHandler.Handle called with {@Query}", query);
-
             IReadOnlyList<Product> products = await session.Query<Product>()
                                                            .Where(p => p.Category.Contains(query.Category))
                                                            .ToListAsync();
