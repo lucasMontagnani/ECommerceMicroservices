@@ -12,7 +12,7 @@ builder.Services.AddMediatR(config =>
     // Register the Validation Behavior
     config.AddOpenBehavior(typeof(ValidationBehavior<,>));
     // Register the Loggin Behavior
-    config.AddOpenBehavior(typeof(LogginBehavior<,>));
+    config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
 
 builder.Services.AddValidatorsFromAssembly(assembly);
