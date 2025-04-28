@@ -5,8 +5,6 @@
         public async Task Handle(OrderCreatedEvent domainEvent, CancellationToken cancellationToken)
         {
             logger.LogInformation("Domain Event handled: {DomainEvent}", domainEvent.GetType().Name);
-
-            throw new NotImplementedException();
         }
     }
 }
