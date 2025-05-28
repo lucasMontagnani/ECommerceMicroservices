@@ -22,6 +22,13 @@ namespace Ordering.Application.Orders.EventHandlers.Integration
             PaymentDto paymentDto = new PaymentDto(message.CardName, message.CardNumber, message.Expiration, message.CVV, message.PaymentMethod);
             Guid orderId = Guid.NewGuid();
 
+            List<OrderItemDto> basketItens = [];
+            foreach (Item item in message.Items)
+            {
+                OrderItemDto orderItem = new OrderItemDto(orderId, item.ProductId, item.Quantity, item.Price);
+                basketItens.Add(orderItem);
+            }
+
             OrderDto orderDto = new OrderDto(
                 Id: orderId,
                 CustomerId: message.CustomerId,
@@ -30,11 +37,7 @@ namespace Ordering.Application.Orders.EventHandlers.Integration
                 BillingAddress: addressDto,
                 Payment: paymentDto,
                 Status: Ordering.Domain.Enums.OrderStatus.Pending,
-                OrderItems:
-                [
-                    new OrderItemDto(orderId, new Guid("5334c996-8457-4cf0-815c-ed2b77c4ff61"), 2, 500),
-                    new OrderItemDto(orderId, new Guid("c67d6323-e8b1-4bdf-9a75-b0d0d2e7e914"), 1, 400)
-                ]
+                OrderItems: basketItens
             );
 
             return new CreateOrderCommand(orderDto);

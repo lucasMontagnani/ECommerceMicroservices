@@ -28,6 +28,14 @@ namespace Basket.API.Basket.CheckoutBasket
             BasketCheckoutEvent eventMessage = command.BasketCheckoutDto.Adapt<BasketCheckoutEvent>();
             eventMessage.TotalPrice = basket.TotalPrice;
 
+            // Add cartItens to the event message
+            eventMessage.Items = new List<Item>();
+            foreach (ShoppingCartItem item in basket.Items)
+            {
+                Item basketItem = new Item(item.ProductId, item.Quantity, item.Price);
+                eventMessage.Items.Add(basketItem);
+            }
+
             // Send basket checkout event to rabbitmq using masstransit
             await publishEndpoint.Publish(eventMessage, cancellationToken);
 
