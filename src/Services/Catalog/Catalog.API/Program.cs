@@ -1,5 +1,7 @@
+using BuildingBlocks.Logging;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
@@ -14,6 +16,8 @@ builder.Services.AddMediatR(config =>
     // Register the Loggin Behavior
     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 builder.Services.AddValidatorsFromAssembly(assembly);
 

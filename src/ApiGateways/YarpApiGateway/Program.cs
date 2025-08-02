@@ -1,5 +1,7 @@
 // Add services to the container.
+using BuildingBlocks.Logging;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,8 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
         options.PermitLimit = 5;
     });
 });
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();

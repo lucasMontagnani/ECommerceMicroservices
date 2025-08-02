@@ -2,6 +2,8 @@ using Discount.Grpc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using BuildingBlocks.Messaging.MassTransit;
+using BuildingBlocks.Logging;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
@@ -19,6 +21,8 @@ builder.Services.AddMediatR(config =>
     // Register the Loggin Behavior
     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
+
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 // Data Services
 builder.Services.AddMarten(opts =>
