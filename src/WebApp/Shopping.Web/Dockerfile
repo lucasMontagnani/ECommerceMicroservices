@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebApp/Shopping.Web/Shopping.Web.csproj", "WebApp/Shopping.Web/"]
+COPY ["BuildingBlocks/BuildingBlocks.Logging/BuildingBlocks.Logging.csproj", "BuildingBlocks/BuildingBlocks.Logging/"]
 RUN dotnet restore "./WebApp/Shopping.Web/Shopping.Web.csproj"
 COPY . .
 WORKDIR "/src/WebApp/Shopping.Web"
