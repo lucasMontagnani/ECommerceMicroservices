@@ -1,24 +1,36 @@
+using BuildingBlocks.Logging;
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+// Register the LoggingDelegatingHandler as a transient service
+builder.Services.AddTransient<LoggingDelegatingHandler>();
 
 // Add Refit HTTP Client Factory
 builder.Services.AddRefitClient<ICatalogService>()
     .ConfigureHttpClient(c =>
     {
         c.BaseAddress = new Uri(builder.Configuration["ApiSettings:GatewayAddress"]!);
-    });
+    })
+    .AddHttpMessageHandler<LoggingDelegatingHandler>();
 builder.Services.AddRefitClient<IBasketService>()
     .ConfigureHttpClient(c =>
     {
         c.BaseAddress = new Uri(builder.Configuration["ApiSettings:GatewayAddress"]!);
-    });
+    })
+    .AddHttpMessageHandler<LoggingDelegatingHandler>();
 builder.Services.AddRefitClient<IOrderingService>()
     .ConfigureHttpClient(c =>
     {
         c.BaseAddress = new Uri(builder.Configuration["ApiSettings:GatewayAddress"]!);
-    });
+    })
+    .AddHttpMessageHandler<LoggingDelegatingHandler>();
+
+// Add Serilog config to Elasticsearch
+builder.Host.UseSerilog(SeriLogger.Configure);
 
 var app = builder.Build();
 
