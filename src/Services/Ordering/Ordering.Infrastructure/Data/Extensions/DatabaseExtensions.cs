@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Azure.Core.Pipeline;
+using BuildingBlocks.Polices;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Polly.Retry;
 
 namespace Ordering.Infrastructure.Data.Extensions
 {
@@ -11,7 +15,20 @@ namespace Ordering.Infrastructure.Data.Extensions
 
             ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            context.Database.MigrateAsync().GetAwaiter().GetResult();
+            // **ATENTION: Better option is to use the native retry of provider, see DependencyInjection.cs, but for demonstration purposes, we will use Polly here**
+
+            ILogger<ApplicationDbContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+
+            AsyncRetryPolicy retryPolicy = PolicyFactory.GetRetryPolicy(logger);
+
+            await retryPolicy.ExecuteAsync(async () =>
+            {
+                logger.LogInformation("Aplicando migrations no banco de dados...");
+
+                await context.Database.MigrateAsync();
+
+                logger.LogInformation("Migrations aplicadas com sucesso.");
+            });
 
             await SeedAsync(context);
         }

@@ -18,7 +18,16 @@ namespace Ordering.Infrastructure
 
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
-                options.UseSqlServer(connString);
+                options.UseSqlServer(
+                    connString,
+                    sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(10),
+                            errorNumbersToAdd: null);
+                    }
+                );
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             });
 
