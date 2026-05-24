@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
+using Polly.Extensions.Http;
 using Polly.Retry;
+using Polly.Timeout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,48 +14,66 @@ namespace BuildingBlocks.Polices
 {
     public static class PolicyFactory
     {
-        public static AsyncRetryPolicy GetRetryPolicy<TLogger>(ILogger<TLogger> logger)
+        // HTTP
+        public static IAsyncPolicy<HttpResponseMessage> GetHttpRetryPolicy<TLogger>(
+            ILogger<TLogger> logger)
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .WaitAndRetryAsync(
+                    3,
+                    retry => TimeSpan.FromSeconds(Math.Pow(2, retry)));
+        }
+
+        // DATABASE
+        public static AsyncRetryPolicy GetDatabaseRetryPolicy<TLogger>(
+            ILogger<TLogger> logger)
         {
             return Policy
                 .Handle<Exception>()
-                //.Or<TimeoutException>()
                 .WaitAndRetryAsync(
-                    retryCount: 3,
-                    sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)), // 2s, 4s, 8s
+                    3,
+                    retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
                     onRetry: (exception, timespan, retryCount, context) =>
                     {
                         logger.LogWarning(
-                            "Erro ao acessar o banco (tentativa {Retry}) — aguardando {Delay}s. Erro: {Error}",
+                            "Erro no banco. Retry {Retry}. Delay {Delay}s. Error: {Error}",
                             retryCount,
                             timespan.TotalSeconds,
-                            exception.Message
-                        );
+                            exception.Message);
                     });
         }
 
-        public static AsyncCircuitBreakerPolicy GetCircuitBreakerPolicy<TLogger>(ILogger<TLogger> logger)
+        public static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy<TLogger>(
+            ILogger<TLogger> logger)
         {
-            return Policy
-                .Handle<Exception>()
-                //.Or<TimeoutException>()
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .Or<TimeoutRejectedException>()
                 .CircuitBreakerAsync(
-                    exceptionsAllowedBeforeBreaking: 5,
+                    handledEventsAllowedBeforeBreaking: 5,
                     durationOfBreak: TimeSpan.FromSeconds(30),
-                    onBreak: (exception, timespan) =>
+
+                    onBreak: (outcome, timespan) =>
                     {
                         logger.LogWarning(
-                            "Circuit breaker ativado por {Duration}s devido a erros repetidos. Erro: {Error}",
+                            "Circuit breaker ativado por {Duration}s. Erro: {Error}",
                             timespan.TotalSeconds,
-                            exception.Message
+                            outcome.Exception?.Message ??
+                                outcome.Result?.StatusCode.ToString()
                         );
                     },
+
                     onReset: () =>
                     {
-                        logger.LogInformation("Circuit breaker resetado. Tentando novamente...");
+                        logger.LogInformation(
+                            "Circuit breaker resetado.");
                     },
+
                     onHalfOpen: () =>
                     {
-                        logger.LogInformation("Circuit breaker em estado de teste (half-open). Tentando nova operação...");
+                        logger.LogInformation(
+                            "Circuit breaker half-open.");
                     });
         }
     }

@@ -19,7 +19,7 @@ namespace Ordering.Infrastructure.Data.Extensions
 
             ILogger<ApplicationDbContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
 
-            AsyncRetryPolicy retryPolicy = PolicyFactory.GetRetryPolicy(logger);
+            AsyncRetryPolicy retryPolicy = PolicyFactory.GetDatabaseRetryPolicy(logger);
 
             await retryPolicy.ExecuteAsync(async () =>
             {

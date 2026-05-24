@@ -22,19 +22,15 @@ builder.Services.AddRefitClient<ICatalogService>()
     .AddHttpMessageHandler<LoggingDelegatingHandler>()
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<ICatalogService>>();
 
-        // Explicitly cast the retry policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetRetryPolicy(logger);
+        return PolicyFactory.GetHttpRetryPolicy(logger);
     })
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<ICatalogService>>();
 
-        // Explicitly cast the circuit breaker policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetCircuitBreakerPolicy(logger);
+        return PolicyFactory.GetCircuitBreakerPolicy(logger);
     });
 
 builder.Services.AddRefitClient<IBasketService>()
@@ -45,19 +41,15 @@ builder.Services.AddRefitClient<IBasketService>()
     .AddHttpMessageHandler<LoggingDelegatingHandler>()
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<IBasketService>>();
 
-        // Explicitly cast the retry policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetRetryPolicy(logger);
+        return PolicyFactory.GetHttpRetryPolicy(logger);
     })
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<IBasketService>>();
 
-        // Explicitly cast the circuit breaker policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetCircuitBreakerPolicy(logger);
+        return PolicyFactory.GetCircuitBreakerPolicy(logger);
     });
 
 builder.Services.AddRefitClient<IOrderingService>()
@@ -68,19 +60,15 @@ builder.Services.AddRefitClient<IOrderingService>()
     .AddHttpMessageHandler<LoggingDelegatingHandler>()
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<IOrderingService>>();
 
-        // Explicitly cast the retry policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetRetryPolicy(logger);
+        return PolicyFactory.GetHttpRetryPolicy(logger);
     })
     .AddPolicyHandler((serviceProvider, request) =>
     {
-        var logger = serviceProvider
-            .GetRequiredService<ILogger<IBasketService>>();
+        var logger = serviceProvider.GetRequiredService<ILogger<IOrderingService>>();
 
-        // Explicitly cast the circuit breaker policy to IAsyncPolicy<HttpResponseMessage>
-        return (IAsyncPolicy<HttpResponseMessage>)PolicyFactory.GetCircuitBreakerPolicy(logger);
+        return PolicyFactory.GetCircuitBreakerPolicy(logger);
     });
 
 // Add Serilog config to Elasticsearch
