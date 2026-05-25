@@ -2,6 +2,7 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Ordering.API
 {
@@ -14,7 +15,16 @@ namespace Ordering.API
             services.AddExceptionHandler<CustomExceptionHandler>();
 
             services.AddHealthChecks()
-                        .AddSqlServer(configuration.GetConnectionString("Database")!);
+                        .AddSqlServer(configuration.GetConnectionString("Database")!,
+                            name: "Ordering SQLServer Health",
+                            failureStatus: HealthStatus.Degraded,
+                            tags: new[] { "db", "sqlserver", "orderdb" }
+                        );
+
+            // Register Swagger
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
+
 
             return services;
         }
@@ -31,6 +41,12 @@ namespace Ordering.API
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
                 }
             );
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
             return app;
         }

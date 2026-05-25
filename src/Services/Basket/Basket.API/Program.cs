@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using BuildingBlocks.Messaging.MassTransit;
 using BuildingBlocks.Logging;
 using Serilog;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
@@ -64,9 +65,22 @@ builder.Services.AddMessageBroker(builder.Configuration);
 // Cross-Cutting Services
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+// Register Health Checks
 builder.Services.AddHealthChecks()
-                    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!)
-                    .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
+                    .AddNpgSql(
+                        builder.Configuration.GetConnectionString("Database")!,
+                        name: "Basket Postgres Health",
+                        failureStatus: HealthStatus.Degraded,
+                        tags: new[] { "db", "postgres", "basketdb" })
+                    .AddRedis(
+                        builder.Configuration.GetConnectionString("Redis")!,
+                        name: "Redis Health",
+                        failureStatus: HealthStatus.Degraded,
+                        tags: new[] { "cache", "redis", "basketdb" });
+
+// Register Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline
@@ -78,7 +92,14 @@ app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health",
     new HealthCheckOptions
     {
+        Predicate = _ => true,
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     });
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.Run();

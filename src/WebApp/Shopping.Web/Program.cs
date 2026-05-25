@@ -4,6 +4,9 @@ using Polly;
 using Polly.Retry;
 using Polly.CircuitBreaker;
 using Serilog;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,12 +70,21 @@ builder.Services.AddRefitClient<IOrderingService>()
     .AddPolicyHandler((serviceProvider, request) =>
     {
         var logger = serviceProvider.GetRequiredService<ILogger<IOrderingService>>();
-
+            
         return PolicyFactory.GetCircuitBreakerPolicy(logger);
     });
 
 // Add Serilog config to Elasticsearch
 builder.Host.UseSerilog(SeriLogger.Configure);
+
+// Register Health Checks
+builder.Services.AddHealthChecks()
+                    .AddUrlGroup(
+                        new Uri($"{builder.Configuration["ApiSettings:GatewayAddress"]}/health"),
+                        name: "Yarp Gateway Health",
+                        failureStatus: HealthStatus.Degraded,
+                        tags: new[] { "yarp", "gateway" }
+                    );
 
 var app = builder.Build();
 
@@ -92,5 +104,12 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        Predicate = _ => true,
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
 
 app.Run();

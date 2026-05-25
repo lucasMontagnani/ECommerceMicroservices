@@ -34,9 +34,16 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+// Register Health Checks
 builder.Services.AddHealthChecks()
-                    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!);
+                    .AddNpgSql(
+                        builder.Configuration.GetConnectionString("Database")!,
+                        name: "Catalog Postgres Health",
+                        failureStatus: HealthStatus.Degraded,
+                        tags: new[] { "db", "postgres", "catalogdb" }
+                    );
 
+// Register Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -50,6 +57,7 @@ app.UseExceptionHandler(options => { });
 app.UseHealthChecks("/health",
     new HealthCheckOptions
     {
+        Predicate = _ => true,
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     });
 

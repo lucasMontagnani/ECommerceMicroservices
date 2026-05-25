@@ -1,5 +1,6 @@
 // Add services to the container.
 using BuildingBlocks.Logging;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 
@@ -19,11 +20,16 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
 
 builder.Host.UseSerilog(SeriLogger.Configure);
 
+// Register Health Checks
+builder.Services.AddHealthChecks();
+
 // Configure the HTTP request pipeline.
 var app = builder.Build();
 
 app.UseRateLimiter();
 
 app.MapReverseProxy();
+
+app.UseHealthChecks("/health");
 
 app.Run();
