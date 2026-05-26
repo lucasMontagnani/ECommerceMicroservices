@@ -56,7 +56,14 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.9.2
 
+  webstatus:
+    image: ${DOCKER_REGISTRY-}webstatus
+    build:
+      context: .
+      dockerfile: WebApp/WebStatus/Dockerfile
+
 volumes:
   postgres_catalog:
   postgres_basket:
   elasticsearch-data:  
+    
